@@ -4,8 +4,8 @@ import React, { Component } from 'react';
 import { Stage, Layer, Group, Circle } from 'react-konva';
 // marbles sprite from https://dribbble.com/shots/2186007-Monster-Marbles
 import MarbleSprite from './monster-marbles-sprite-sheets.jpg';
-import { scalePoint } from 'd3-scale';
 import { range } from 'd3-array';
+import { timer } from 'd3-timer';
 
 const Marbles = {
     dino: { x: -222, y: -177, c: '#8664d5' },
@@ -23,16 +23,37 @@ const Marbles = {
 
 const MarbleR = 25;
 
-const Marble = ({ x, y, sprite, type }) => (
-    <Circle x={x} y={y} radius={MarbleR}
-            fillPatternImage={sprite}
-            fillPatternOffset={Marbles[type]}
-            fillPatternScale={{ x: MarbleR*2/111, y: MarbleR*2/111 }}
-            shadowColor={Marbles[type].c}
-            shadowBlur="15"
-            shadowOpacity="1"
-           />
-);
+class Marble extends Component {
+    onDragEnd() {
+        const { x, y } = this.props,
+              circle = this.refs.circle;
+
+        this.props.onDragEnd({
+            x: circle.attrs.x,
+            y: circle.attrs.y,
+            vx: (circle.attrs.x-x)/7,
+            vy: (circle.attrs.y-y)/7
+        });
+    }
+
+    render() {
+        const { x, y, sprite, type, draggable } = this.props;
+
+        return (
+            <Circle x={x} y={y} radius={MarbleR}
+                    fillPatternImage={sprite}
+                    fillPatternOffset={Marbles[type]}
+                    fillPatternScale={{ x: MarbleR*2/111, y: MarbleR*2/111 }}
+                    shadowColor={Marbles[type].c}
+                    shadowBlur="15"
+                    shadowOpacity="1"
+                    draggable={draggable}
+                    onDragEnd={this.onDragEnd.bind(this)}
+                    ref="circle"
+                    />
+        );
+    }
+}
 
 class Collisions extends Component {
     constructor(props) {
@@ -40,7 +61,7 @@ class Collisions extends Component {
 
         this.state = {
             sprite: null,
-            positions: this.initialPositions
+            marbles: this.initialPositions
         }
     }
 
@@ -48,14 +69,29 @@ class Collisions extends Component {
         const { width, height } = this.props,
               center = width/2;
 
-        return range(3, 0, -1).map(y => {
-            if (y === 3) return [[center, 200]];
+        let marbles = range(3, 0, -1).map(y => {
+            if (y === 3) return [{ x: center, y: 200,
+                                   vx: 0, vy: 0}];
 
             const left = center - y*(MarbleR+5),
                   right = center + y*(MarbleR+5);
 
-            return range(left, right, MarbleR*2+5).map(x => [x, 200-y*(MarbleR*2+5)]);
+            return range(left, right, MarbleR*2+5).map(x => ({
+                x: x,
+                y: 200-y*(MarbleR*2+5),
+                vx: 0,
+                vy: 0
+            }));
         }).reduce((acc, pos) => acc.concat(pos), []);
+
+        marbles = marbles.concat({
+            x: width/2,
+            y: height-150,
+            vx: 0,
+            vy: 0
+        });
+
+        return marbles;
     }
 
     componentDidMount() {
@@ -66,7 +102,34 @@ class Collisions extends Component {
             this.setState({
                 sprite: sprite
             });
+
+            this.timer = timer(() => this.gameLoop());
         };
+    }
+
+    shoot(newPos, i) {
+        let marbles = this.state.marbles;
+
+        marbles[i] = newPos;
+
+        this.setState({
+            marbles: marbles
+        });
+    }
+
+    gameLoop() {
+        const { width, height } = this.props;
+
+        const moveMarble = ({x, y, vx, vy}) => ({
+            x: x+vx,
+            y: y+vy,
+            vx: ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
+            vy: ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99
+        });
+
+        this.setState({
+            marbles: this.state.marbles.map(moveMarble)
+        });
     }
 
     render() {
@@ -83,13 +146,15 @@ class Collisions extends Component {
             <Stage width={width} height={height}>
                 <Layer>
                     <Group>
-                        {this.state.positions.map(([x, y], i) => (
+                        {this.state.marbles.map(({x: x, y: y}, i) => (
                             <Marble x={x}
                                     y={y}
                                     type={marbleTypes[i%marbleTypes.length]}
                                     sprite={sprite}
+                                    draggable="true"
+                                    onDragEnd={(newPos) => this.shoot(newPos, i)}
                                     key={`${marbleTypes[i%marbleTypes.length]}-${i}`} />
-                         ))}
+                        ))}
                     </Group>
                 </Layer>
             </Stage>

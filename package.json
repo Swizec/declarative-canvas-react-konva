@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "d3-scale": "^1.0.4",
+    "d3-timer": "^1.0.4",
     "konva": "^1.4.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
