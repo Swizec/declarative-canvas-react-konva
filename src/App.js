@@ -14,7 +14,7 @@ class App extends Component {
                     <p>Rendered on canvas, built with React and Konva</p>
                 </div>
                 <div className="App-intro">
-                    <Collisions width={500} height={500} />
+                    <Collisions width={800} height={600} />
                 </div>
             </div>
         );
