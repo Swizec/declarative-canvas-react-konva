@@ -8,15 +8,19 @@
   "dependencies": {
     "d3-scale": "^1.0.4",
     "d3-timer": "^1.0.4",
+    "gh-pages": "^0.12.0",
     "konva": "^1.4.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-konva": "^1.1.1"
   },
+    "homepage": "https://swizec.github.io/declarative-canvas-react-konva",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
+      "eject": "react-scripts eject",
+      "predeploy": "npm run build",
+      "deploy": "gh-pages -d build"
   }
 }
