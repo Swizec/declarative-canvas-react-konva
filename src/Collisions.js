@@ -28,7 +28,7 @@ class Marble extends Component {
         const { x, y } = this.props,
               circle = this.refs.circle;
 
-        this.props.onDragEnd({
+        this.props.onShoot({
             x: circle.attrs.x,
             y: circle.attrs.y,
             vx: (circle.attrs.x-x)/7,
@@ -152,7 +152,7 @@ class Collisions extends Component {
                                     type={marbleTypes[i%marbleTypes.length]}
                                     sprite={sprite}
                                     draggable="true"
-                                    onDragEnd={(newPos) => this.shoot(newPos, i)}
+                                    onShoot={(newPos) => this.shoot(newPos, i)}
                                     key={`${marbleTypes[i%marbleTypes.length]}-${i}`} />
                         ))}
                     </Group>
