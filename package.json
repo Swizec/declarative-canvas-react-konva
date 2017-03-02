@@ -6,6 +6,7 @@
     "custom-react-scripts": "0.0.23"
   },
   "dependencies": {
+    "d3-force": "^1.0.5",
     "d3-scale": "^1.0.4",
     "d3-timer": "^1.0.4",
     "gh-pages": "^0.12.0",

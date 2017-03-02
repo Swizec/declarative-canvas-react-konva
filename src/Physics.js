@@ -3,6 +3,8 @@ import { observable, computed, action } from 'mobx';
 import { range } from 'd3-array';
 import { timer } from 'd3-timer';
 import { scaleQuantize } from 'd3-scale';
+import { forceSimulation, forceX, forceY, forceCollide } from 'd3-force';
+import { quadtree } from 'd3-quadtree';
 
 const MarbleDefinitions = {
     dino: { x: -222, y: -177, c: '#8664d5' },
@@ -22,12 +24,12 @@ class Physics {
     @observable MarbleR = 25;
     @observable width = 800;
     @observable height = 600;
-    @observable _marbles = [];
+    @observable marbles = [];
     timer = null;
     xScale = scaleQuantize().domain([0, this.width])
-                            .range(range(0, this.width, this.MarbleR));
+                            .range(range(0, this.width, this.MarbleR*2));
     yScale = scaleQuantize().domain([0, this.height])
-                            .range(range(0, this.height, this.MarbleR));
+                            .range(range(0, this.height, this.MarbleR*2));
 
     @computed get initialPositions() {
         const { width, height, MarbleR } = this,
@@ -44,16 +46,20 @@ class Physics {
                 x: x,
                 y: 200-y*(MarbleR*2+5),
                 vx: 0,
-                vy: 0
+                vy: 0,
+                r: this.MarbleR
             }));
         }).reduce((acc, pos) => acc.concat(pos), []);
 
-        marbles = marbles.concat({
+        marbles = [].concat(marbles[0], {
             x: width/2,
             y: height-150,
             vx: 0,
-            vy: 0
+            vy: 0,
+            r: this.MarbleR
         });
+
+        marbles.forEach((m, i) => marbles[i].id = i);
 
         return marbles;
     }
@@ -62,19 +68,11 @@ class Physics {
         return Object.keys(MarbleDefinitions);
     }
 
-    @computed get marbles() {
-        if (!this._marbles.length) {
-            this._marbles = this.initialPositions;
-        }
-
-        return this._marbles;
-    }
-
     @computed get collisionCandidates() {
         let _buckets = {},
             candidates = {};
 
-        this._marbles.forEach(({ x, y, vx, vy }, i) => {
+        this.marbles.forEach(({ x, y, vx, vy }, i) => {
             const _x = this.xScale(x),
                   _y = this.yScale(y),
                   key = `${_x},${_y}`;
@@ -101,38 +99,69 @@ class Physics {
     }
 
     @action startGameLoop() {
+        this.marbles = this.initialPositions;
+
         this.timer = timer(() => this.simulationStep());
+
+        /* this.simulation = forceSimulation(marbles)
+           .velocityDecay(0.2)
+           .force('x', forceX().strength(0.002))
+           .force('y', forceY().strength(0.002))
+           .force('collide', forceCollide().radius((d) => d.r + 0.5).iterations(2))
+           .on('tick', () => this._ticked()); */
     }
 
     @action simulationStep() {
         const { width, height, MarbleR } = this;
 
-        const collisionCandidates = this.collisionCandidates;
+        //const collisionCandidates = this.collisionCandidates;
 
-        console.log(collisionCandidates);
+        const moveMarble = ({x, y, vx, vy, id}) => {
+            let _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
+                _vy = ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99;
 
-        const moveMarble = ({x, y, vx, vy}) => ({
-            x: x+vx,
-            y: y+vy,
-            vx: ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
-            vy: ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99
-        });
+            // nearest marble is a collision candidate
+            const subdividedSpace = quadtree().extent([[-1, -1],
+                                                       [this.width+1, this.height+1]])
+                                              .addAll(this.marbles
+                                                          .filter((m, i) => id !== i)
+                                                          .map(({x, y}) => [x, y])),
+                  candidate = subdividedSpace.find(x, y, MarbleR*2);
 
-        this._marbles.forEach((marble, i) => {
+            if (candidate) {
+                const [cx, cy] = candidate;
+
+                _vx = -vx*.99;
+                _vy = -vy*.99;
+            }
+
+            return {
+                x: x+_vx,
+                y: y+_vy,
+                vx: _vx,
+                vy: _vy
+            }
+        };
+
+        this.marbles.forEach((marble, i) => {
             const { x, y, vx, vy } = moveMarble(marble);
 
-            this._marbles[i].x = x;
-            this._marbles[i].y = y;
-            this._marbles[i].vx = vx;
-            this._marbles[i].vy = vy;
+            this.marbles[i].x = x;
+            this.marbles[i].y = y;
+            this.marbles[i].vx = vx;
+            this.marbles[i].vy = vy;
         });
     }
 
     @action shoot({ x, y, vx, vy }, i) {
-        this._marbles[i].x = x;
-        this._marbles[i].y = y;
-        this._marbles[i].vx = vx;
-        this._marbles[i].vy = vy
+        this.marbles[i].x = x;
+        this.marbles[i].y = y;
+        this.marbles[i].vx = vx;
+        this.marbles[i].vy = vy
+    }
+
+    @action _ticked() {
+        console.log(this.marbles[0].x, this.marbles[0].y);
     }
 }
 
