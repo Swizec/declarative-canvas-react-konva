@@ -153,7 +153,7 @@ class Collisions extends Component {
                                     sprite={sprite}
                                     draggable="true"
                                     onShoot={(newPos) => this.shoot(newPos, i)}
-                                    key={`${marbleTypes[i%marbleTypes.length]}-${i}`} />
+                                    key={`marble-${i}`} />
                         ))}
                     </Group>
                 </Layer>
