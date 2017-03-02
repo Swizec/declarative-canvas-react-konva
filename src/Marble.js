@@ -1,37 +1,26 @@
 
 import React, { Component } from 'react';
 import { Circle } from 'react-konva';
+import { inject, observer } from 'mobx-react';
 
 // marbles sprite from https://dribbble.com/shots/2186007-Monster-Marbles
 import MarbleSprite from './monster-marbles-sprite-sheets.jpg';
-
-const Marbles = {
-    dino: { x: -222, y: -177, c: '#8664d5' },
-    redHeart: { x: -222, y: -299, c: '#e47178' },
-    sun: { x: -222, y: -420, c: '#5c96ac' },
-
-    yellowHeart: { x: -400, y: -177, c: '#c8b405' },
-    mouse: { x: -400, y: -299, c: '#7d7e82' },
-    pumpkin: { x: -400, y: -420, c: '#fa9801' },
-
-    frog: { x: -576, y: -177, c: '#98b42b' },
-    moon: { x: -575, y: -299, c: '#b20717' },
-    bear: { x: -576, y: -421, c: '#a88534' }
-};
+import { MarbleDefinitions } from './Physics';
 
 const MarbleR = 25;
 
+@inject('physics') @observer
 class Marble extends Component {
     onDragEnd() {
-        const { x, y } = this.props,
+        const { x, y, physics, index } = this.props,
               circle = this.refs.circle;
 
-        this.props.onShoot({
+        physics.shoot({
             x: circle.attrs.x,
             y: circle.attrs.y,
             vx: (circle.attrs.x-x)/7,
             vy: (circle.attrs.y-y)/7
-        });
+        }, index);
     }
 
     render() {
@@ -40,9 +29,9 @@ class Marble extends Component {
         return (
             <Circle x={x} y={y} radius={MarbleR}
                     fillPatternImage={sprite}
-                    fillPatternOffset={Marbles[type]}
+                    fillPatternOffset={MarbleDefinitions[type]}
                     fillPatternScale={{ x: MarbleR*2/111, y: MarbleR*2/111 }}
-                    shadowColor={Marbles[type].c}
+                    shadowColor={MarbleDefinitions[type].c}
                     shadowBlur="15"
                     shadowOpacity="1"
                     draggable={draggable}
@@ -54,4 +43,4 @@ class Marble extends Component {
 }
 
 export default Marble;
-export { Marbles, MarbleSprite };
+export { MarbleSprite };
