@@ -2,6 +2,7 @@
 import { observable, computed, action } from 'mobx';
 import { range } from 'd3-array';
 import { timer } from 'd3-timer';
+import { scaleQuantize } from 'd3-scale';
 
 const MarbleDefinitions = {
     dino: { x: -222, y: -177, c: '#8664d5' },
@@ -23,6 +24,10 @@ class Physics {
     @observable height = 600;
     @observable _marbles = [];
     timer = null;
+    xScale = scaleQuantize().domain([0, this.width])
+                            .range(range(0, this.width, this.MarbleR));
+    yScale = scaleQuantize().domain([0, this.height])
+                            .range(range(0, this.height, this.MarbleR));
 
     @computed get initialPositions() {
         const { width, height, MarbleR } = this,
@@ -65,6 +70,31 @@ class Physics {
         return this._marbles;
     }
 
+    @computed get collisionCandidates() {
+        let _buckets = {},
+            candidates = {};
+
+        this._marbles.forEach(({ x, y, vx, vy }, i) => {
+            const _x = this.xScale(x),
+                  _y = this.yScale(y),
+                  key = `${_x},${_y}`;
+
+            if (!_buckets[key]) {
+                _buckets[key] = [];
+            }
+
+            _buckets[key].push(i);
+        });
+
+        Object.keys(_buckets).forEach((key) => {
+            if (_buckets[key].length > 1) {
+                candidates[key] = _buckets[key];
+            }
+        });
+
+        return candidates;
+    }
+
     @action setDimension(width, height) {
         this.width = width;
         this.height = height;
@@ -76,6 +106,10 @@ class Physics {
 
     @action simulationStep() {
         const { width, height, MarbleR } = this;
+
+        const collisionCandidates = this.collisionCandidates;
+
+        console.log(collisionCandidates);
 
         const moveMarble = ({x, y, vx, vy}) => ({
             x: x+vx,
