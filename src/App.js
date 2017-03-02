@@ -10,7 +10,7 @@ class App extends Component {
             <div className="App">
                 <div className="App-header">
                     <img src={logo} className="App-logo" alt="logo" />
-                    <h2>Inelastic collisions</h2>
+                    <h2>Elastic collisions</h2>
                     <p>Rendered on canvas, built with React and Konva</p>
                 </div>
                 <div className="App-intro">
