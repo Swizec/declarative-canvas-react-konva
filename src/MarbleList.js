@@ -13,14 +13,14 @@ const MarbleList = inject('physics')(observer(({ physics, sprite }) => {
         <Stage width={width} height={height}>
             <Layer>
                 <Group>
-                    {marbles.map(({ x, y }, i) => (
+                    {marbles.map(({ x, y, id }, i) => (
                         <Marble x={x}
                                 y={y}
                                 type={marbleTypes[i%marbleTypes.length]}
                                 sprite={sprite}
                                 draggable="true"
-                                index={i}
-                                key={`marble-${i}`} />
+                                id={id}
+                                key={`marble-${id}`} />
                     ))}
                 </Group>
             </Layer>

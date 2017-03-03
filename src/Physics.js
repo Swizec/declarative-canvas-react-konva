@@ -3,7 +3,6 @@ import { observable, computed, action } from 'mobx';
 import { range } from 'd3-array';
 import { timer } from 'd3-timer';
 import { scaleQuantize } from 'd3-scale';
-import { forceSimulation, forceX, forceY, forceCollide } from 'd3-force';
 import { quadtree } from 'd3-quadtree';
 
 const MarbleDefinitions = {
@@ -37,7 +36,7 @@ class Physics {
 
         let marbles = range(3, 0, -1).map(y => {
             if (y === 3) return [{ x: center, y: 200,
-                                   vx: 0, vy: 0}];
+                                   vx: 0, vy: 0, r: this.MarbleR}];
 
             const left = center - y*(MarbleR+5),
                   right = center + y*(MarbleR+5);
@@ -51,7 +50,7 @@ class Physics {
             }));
         }).reduce((acc, pos) => acc.concat(pos), []);
 
-        marbles = [].concat(marbles[0], {
+        marbles = [].concat(marbles, {
             x: width/2,
             y: height-150,
             vx: 0,
@@ -68,53 +67,14 @@ class Physics {
         return Object.keys(MarbleDefinitions);
     }
 
-    @computed get collisionCandidates() {
-        let _buckets = {},
-            candidates = {};
-
-        this.marbles.forEach(({ x, y, vx, vy }, i) => {
-            const _x = this.xScale(x),
-                  _y = this.yScale(y),
-                  key = `${_x},${_y}`;
-
-            if (!_buckets[key]) {
-                _buckets[key] = [];
-            }
-
-            _buckets[key].push(i);
-        });
-
-        Object.keys(_buckets).forEach((key) => {
-            if (_buckets[key].length > 1) {
-                candidates[key] = _buckets[key];
-            }
-        });
-
-        return candidates;
-    }
-
-    @action setDimension(width, height) {
-        this.width = width;
-        this.height = height;
-    }
-
     @action startGameLoop() {
         this.marbles = this.initialPositions;
 
         this.timer = timer(() => this.simulationStep());
-
-        /* this.simulation = forceSimulation(marbles)
-           .velocityDecay(0.2)
-           .force('x', forceX().strength(0.002))
-           .force('y', forceY().strength(0.002))
-           .force('collide', forceCollide().radius((d) => d.r + 0.5).iterations(2))
-           .on('tick', () => this._ticked()); */
     }
 
     @action simulationStep() {
         const { width, height, MarbleR } = this;
-
-        //const collisionCandidates = this.collisionCandidates;
 
         const moveMarble = ({x, y, vx, vy, id}) => {
             let _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
@@ -123,16 +83,26 @@ class Physics {
             // nearest marble is a collision candidate
             const subdividedSpace = quadtree().extent([[-1, -1],
                                                        [this.width+1, this.height+1]])
+                                              .x(d => d.x)
+                                              .y(d => d.y)
                                               .addAll(this.marbles
-                                                          .filter((m, i) => id !== i)
-                                                          .map(({x, y}) => [x, y])),
+                                                          .filter((m, i) => id !== i)),
                   candidate = subdividedSpace.find(x, y, MarbleR*2);
 
             if (candidate) {
-                const [cx, cy] = candidate;
+               // borrowing @air_hadoken's implementation from here:
+               // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
+                const cx = candidate.x,
+                      cy = candidate.y,
+                      nx = cx - x,
+                      ny = cy - y,
+                      c = (_vx * nx + _vy * ny) / (nx ** 2 + ny ** 2) * 2;
 
-                _vx = -vx*.99;
-                _vy = -vy*.99;
+                _vx = (_vx - c * nx)/2;
+                _vy = (_vy - c * ny)/2;
+
+                candidate.vx += -_vx;
+                candidate.vy += -_vy;
             }
 
             return {

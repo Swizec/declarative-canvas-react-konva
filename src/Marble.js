@@ -7,35 +7,62 @@ import { inject, observer } from 'mobx-react';
 import MarbleSprite from './monster-marbles-sprite-sheets.jpg';
 import { MarbleDefinitions } from './Physics';
 
-const MarbleR = 25;
-
 @inject('physics') @observer
 class Marble extends Component {
+    onDragStart() {
+        const { physics, id } = this.props;
+
+        this.setState({
+            origX: physics.marbles[id].x,
+            origY: physics.marbles[id].y,
+            startTime: new Date()
+        });
+    }
+
+    onDragMove() {
+        const { physics, id } = this.props;
+        const { x, y } = this.refs.circle.attrs;
+
+        physics.marbles[id].x = x;
+        physics.marbles[id].y = y;
+    }
+
     onDragEnd() {
-        const { x, y, physics, index } = this.props,
-              circle = this.refs.circle;
+        const { physics } = this.props,
+              circle = this.refs.circle,
+              { origX, origY } = this.state,
+              { x, y } = circle.attrs;
+
+
+        const deltaT = new Date() - this.state.startTime,
+              dist = (x - origX) ** 2 + (y - origY) ** 2,
+              v = Math.sqrt(dist)/(deltaT/16); // distance per frame (= 16ms)
 
         physics.shoot({
-            x: circle.attrs.x,
-            y: circle.attrs.y,
-            vx: (circle.attrs.x-x)/7,
-            vy: (circle.attrs.y-y)/7
-        }, index);
+           x: x,
+           y: y,
+           vx: (x - origX)/(v/2), // /2 is a speedup factor
+           vy: (y - origY)/(v/2)
+           }, this.props.id);
     }
 
     render() {
-        const { x, y, sprite, type, draggable } = this.props;
+        const { sprite, type, draggable, id, physics } = this.props;
+
+        const { x, y, r } = physics.marbles[id];
 
         return (
-            <Circle x={x} y={y} radius={MarbleR}
+            <Circle x={x} y={y} radius={r}
                     fillPatternImage={sprite}
                     fillPatternOffset={MarbleDefinitions[type]}
-                    fillPatternScale={{ x: MarbleR*2/111, y: MarbleR*2/111 }}
+                    fillPatternScale={{ x: r*2/111, y: r*2/111 }}
                     shadowColor={MarbleDefinitions[type].c}
                     shadowBlur="15"
                     shadowOpacity="1"
                     draggable={draggable}
+                    onDragStart={this.onDragStart.bind(this)}
                     onDragEnd={this.onDragEnd.bind(this)}
+                    onDragMove={this.onDragMove.bind(this)}
                     ref="circle"
                     />
         );
