@@ -3,11 +3,9 @@ import React, { Component } from 'react';
 import { Circle } from 'react-konva';
 import { inject, observer } from 'mobx-react';
 
-// marbles sprite from https://dribbble.com/shots/2186007-Monster-Marbles
-import MarbleSprite from './monster-marbles-sprite-sheets.jpg';
-import { MarbleDefinitions } from './Physics';
+import { MarbleDefinitions } from './logic/Physics';
 
-@inject('physics') @observer
+@inject('physics', 'sprite') @observer
 class Marble extends Component {
     onDragStart() {
         const { physics, id } = this.props;
@@ -34,15 +32,15 @@ class Marble extends Component {
               { x, y } = circle.attrs;
 
 
-        const deltaT = new Date() - this.state.startTime,
+        const delta_t = new Date() - this.state.startTime,
               dist = (x - origX) ** 2 + (y - origY) ** 2,
-              v = Math.sqrt(dist)/(deltaT/16); // distance per frame (= 16ms)
+              v = Math.sqrt(dist)/(delta_t/16); // distance per frame (= 16ms)
 
         physics.shoot({
            x: x,
            y: y,
-           vx: (x - origX)/(v/2), // /2 is a speedup factor
-           vy: (y - origY)/(v/2)
+           vx: (x - origX)/(v/3), // /3 is a speedup factor
+           vy: (y - origY)/(v/3)
            }, this.props.id);
     }
 
@@ -53,7 +51,7 @@ class Marble extends Component {
 
         return (
             <Circle x={x} y={y} radius={r}
-                    fillPatternImage={sprite}
+                    fillPatternImage={sprite.sprite}
                     fillPatternOffset={MarbleDefinitions[type]}
                     fillPatternScale={{ x: r*2/111, y: r*2/111 }}
                     shadowColor={MarbleDefinitions[type].c}
@@ -70,4 +68,3 @@ class Marble extends Component {
 }
 
 export default Marble;
-export { MarbleSprite };

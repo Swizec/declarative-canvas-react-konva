@@ -34,16 +34,19 @@ class Physics {
         const { width, height, MarbleR } = this,
               center = width/2;
 
-        let marbles = range(3, 0, -1).map(y => {
-            if (y === 3) return [{ x: center, y: 200,
-                                   vx: 0, vy: 0, r: this.MarbleR}];
+        const lines = 4,
+              maxY = 200;
+
+        let marbles = range(lines, 0, -1).map(y => {
+            if (y === lines) return [{ x: center, y: maxY,
+                                       vx: 0, vy: 0, r: this.MarbleR}];
 
             const left = center - y*(MarbleR+5),
                   right = center + y*(MarbleR+5);
 
             return range(left, right, MarbleR*2+5).map(x => ({
                 x: x,
-                y: 200-y*(MarbleR*2+5),
+                y: maxY-y*(MarbleR*2+5),
                 vx: 0,
                 vy: 0,
                 r: this.MarbleR
@@ -90,18 +93,18 @@ class Physics {
                   candidate = subdividedSpace.find(x, y, MarbleR*2);
 
             if (candidate) {
-               // borrowing @air_hadoken's implementation from here:
-               // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
+
+                // borrowing @air_hadoken's implementation from here:
+                // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
                 const cx = candidate.x,
                       cy = candidate.y,
                       normx = cx - x,
                       normy = cy - y,
-                      c = (_vx * normx + _vy * normy) / (normx ** 2 + normy ** 2) * 2;
+                      dist = (normx ** 2 + normy ** 2),
+                      c = (_vx * normx + _vy * normy) / dist * 2.3;
 
-
-
-                _vx = (_vx - c * normx)/2;
-                _vy = (_vy - c * normy)/2;
+                _vx = (_vx - c * normx)/2.3;
+                _vy = (_vy - c * normy)/2.3;
 
                 candidate.vx += -_vx;
                 candidate.vy += -_vy;
@@ -128,10 +131,12 @@ class Physics {
     }
 
     @action shoot({ x, y, vx, vy }, i) {
+        const maxSpeed = 20;
+
         this.marbles[i].x = x;
         this.marbles[i].y = y;
-        this.marbles[i].vx = vx*1.7;
-        this.marbles[i].vy = vy*1.7;
+        this.marbles[i].vx = vx < maxSpeed ? vx : maxSpeed;
+        this.marbles[i].vy = vy < maxSpeed ? vy : maxSpeed;
     }
 }
 

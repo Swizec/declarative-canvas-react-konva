@@ -6,7 +6,7 @@ import { Stage, Layer, Group } from 'react-konva';
 
 import Marble from './Marble';
 
-const MarbleList = inject('physics')(observer(({ physics, sprite }) => {
+const MarbleList = inject('physics')(observer(({ physics }) => {
     const { width, height, marbles, marbleTypes } = physics;
 
     return (
@@ -17,7 +17,6 @@ const MarbleList = inject('physics')(observer(({ physics, sprite }) => {
                         <Marble x={x}
                                 y={y}
                                 type={marbleTypes[i%marbleTypes.length]}
-                                sprite={sprite}
                                 draggable="true"
                                 id={id}
                                 key={`marble-${id}`} />
