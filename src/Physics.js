@@ -86,7 +86,7 @@ class Physics {
                                               .x(d => d.x)
                                               .y(d => d.y)
                                               .addAll(this.marbles
-                                                          .filter((m, i) => id !== i)),
+                                                          .filter(m => id !== m.id)),
                   candidate = subdividedSpace.find(x, y, MarbleR*2);
 
             if (candidate) {
@@ -94,20 +94,24 @@ class Physics {
                // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
                 const cx = candidate.x,
                       cy = candidate.y,
-                      nx = cx - x,
-                      ny = cy - y,
-                      c = (_vx * nx + _vy * ny) / (nx ** 2 + ny ** 2) * 2;
+                      normx = cx - x,
+                      normy = cy - y,
+                      c = (_vx * normx + _vy * normy) / (normx ** 2 + normy ** 2) * 2;
 
-                _vx = (_vx - c * nx)/2;
-                _vy = (_vy - c * ny)/2;
+
+
+                _vx = (_vx - c * normx)/2;
+                _vy = (_vy - c * normy)/2;
 
                 candidate.vx += -_vx;
                 candidate.vy += -_vy;
+                candidate.x += -_vx;
+                candidate.y += -_vy;
             }
 
             return {
-                x: x+_vx,
-                y: y+_vy,
+                x: x + _vx,
+                y: y + _vy,
                 vx: _vx,
                 vy: _vy
             }
@@ -126,12 +130,8 @@ class Physics {
     @action shoot({ x, y, vx, vy }, i) {
         this.marbles[i].x = x;
         this.marbles[i].y = y;
-        this.marbles[i].vx = vx;
-        this.marbles[i].vy = vy
-    }
-
-    @action _ticked() {
-        console.log(this.marbles[0].x, this.marbles[0].y);
+        this.marbles[i].vx = vx*1.7;
+        this.marbles[i].vy = vy*1.7;
     }
 }
 
