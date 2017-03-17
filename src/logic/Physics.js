@@ -80,11 +80,11 @@ class Physics {
         const { width, height, MarbleR } = this;
 
         const moveMarble = ({x, y, vx, vy, id}) => {
-            let eps = 1,
-                _x = (x+vx < MarbleR) ? MarbleR+eps-vx : (x+vx > width-MarbleR) ? width-MarbleR-eps-vx : x,
-                _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
-                _y = (y+vy < MarbleR) ? MarbleR+eps-vy : (y+vy > height-MarbleR) ? height-MarbleR-eps-vy : y,
-                _vy = ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99;
+            let _vx = ((x < MarbleR) ? -vx : (x > width-MarbleR) ? -vx : vx)*.99,
+                _vy = ((y < MarbleR) ? -vy : (y > height-MarbleR) ? -vy : vy)*.99;
+
+            x = (x < MarbleR) ? MarbleR : (x > width-MarbleR) ? width-MarbleR : x;
+            y = (y < MarbleR) ? MarbleR : (y > height-MarbleR) ? height-MarbleR : y;
 
             // nearest marble is a collision candidate
             const subdividedSpace = quadtree().extent([[-1, -1],
@@ -103,8 +103,8 @@ class Physics {
                       cy = candidate.y,
                       cvx = candidate.vx,
                       cvy = candidate.vy,
-                      dx = cx - _x,
-                      dy = cy - _y,
+                      dx = cx - x,
+                      dy = cy - y,
                       d = Math.sqrt(dx ** 2 + dy ** 2),
                       dirx = dx/d,
                       diry = dy/d,
