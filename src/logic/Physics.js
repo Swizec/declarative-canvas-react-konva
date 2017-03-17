@@ -20,7 +20,7 @@ const MarbleDefinitions = {
 };
 
 class Physics {
-    @observable MarbleR = 25;
+    @observable MarbleR = 15;
     @observable width = 800;
     @observable height = 600;
     @observable marbles = [];
@@ -98,18 +98,24 @@ class Physics {
                 // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
                 const cx = candidate.x,
                       cy = candidate.y,
-                      normx = cx - x,
-                      normy = cy - y,
-                      dist = (normx ** 2 + normy ** 2),
-                      c = (_vx * normx + _vy * normy) / dist * 2.3;
+                      cvx = candidate.vx,
+                      cvy = candidate.vy,
+                      dx = cx - x,
+                      dy = cy - y,
+                      d = Math.sqrt(dx ** 2 + dy ** 2),
+                      dirx = dx/d,
+                      diry = dy/d,
+                      dv = (_vx-cvx)*dirx + (_vy-cvy)*diry,
+                      dvx = dv*dirx,
+                      dvy = dv*diry;
 
-                _vx = (_vx - c * normx)/2.3;
-                _vy = (_vy - c * normy)/2.3;
+                _vx += -dvx;
+                _vy += -dvy;
 
-                candidate.vx += -_vx;
-                candidate.vy += -_vy;
-                candidate.x += -_vx;
-                candidate.y += -_vy;
+                candidate.vx += dvx;
+                candidate.vy += dvy;
+                candidate.x += candidate.vx;
+                candidate.y += candidate.vy;
             }
 
             return {
