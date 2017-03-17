@@ -20,7 +20,7 @@ const MarbleDefinitions = {
 };
 
 class Physics {
-    @observable MarbleR = 15;
+    @observable MarbleR = 25;
     @observable width = 800;
     @observable height = 600;
     @observable marbles = [];
@@ -80,7 +80,10 @@ class Physics {
         const { width, height, MarbleR } = this;
 
         const moveMarble = ({x, y, vx, vy, id}) => {
-            let _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
+            let eps = 1,
+                _x = (x+vx < MarbleR) ? MarbleR+eps-vx : (x+vx > width-MarbleR) ? width-MarbleR-eps-vx : x,
+                _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
+                _y = (y+vy < MarbleR) ? MarbleR+eps-vy : (y+vy > height-MarbleR) ? height-MarbleR-eps-vy : y,
                 _vy = ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99;
 
             // nearest marble is a collision candidate
@@ -100,11 +103,15 @@ class Physics {
                       cy = candidate.y,
                       cvx = candidate.vx,
                       cvy = candidate.vy,
-                      dx = cx - x,
-                      dy = cy - y,
+                      dx = cx - _x,
+                      dy = cy - _y,
                       d = Math.sqrt(dx ** 2 + dy ** 2),
                       dirx = dx/d,
                       diry = dy/d,
+                      // Shift marbles so no overlap
+                      dr = 2*MarbleR-d,
+                      drx = dr*dirx,
+                      dry = dr*diry,
                       dv = (_vx-cvx)*dirx + (_vy-cvy)*diry,
                       dvx = dv*dirx,
                       dvy = dv*diry;
@@ -114,8 +121,8 @@ class Physics {
 
                 candidate.vx += dvx;
                 candidate.vy += dvy;
-                candidate.x += candidate.vx;
-                candidate.y += candidate.vy;
+                candidate.x += drx+candidate.vx;
+                candidate.y += dry+candidate.vy;
             }
 
             return {
