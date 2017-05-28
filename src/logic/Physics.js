@@ -5,20 +5,6 @@ import { timer } from 'd3-timer';
 import { scaleQuantize } from 'd3-scale';
 import { quadtree } from 'd3-quadtree';
 
-const MarbleDefinitions = {
-    dino: { x: -222, y: -177, c: '#8664d5' },
-    redHeart: { x: -222, y: -299, c: '#e47178' },
-    sun: { x: -222, y: -420, c: '#5c96ac' },
-
-    yellowHeart: { x: -400, y: -177, c: '#c8b405' },
-    mouse: { x: -400, y: -299, c: '#7d7e82' },
-    pumpkin: { x: -400, y: -420, c: '#fa9801' },
-
-    frog: { x: -576, y: -177, c: '#98b42b' },
-    moon: { x: -575, y: -299, c: '#b20717' },
-    bear: { x: -576, y: -421, c: '#a88534' }
-};
-
 class Physics {
     @observable MarbleR = 25;
     @observable width = 800;
@@ -64,10 +50,6 @@ class Physics {
         marbles.forEach((m, i) => marbles[i].id = i);
 
         return marbles;
-    }
-
-    @computed get marbleTypes() {
-        return Object.keys(MarbleDefinitions);
     }
 
     @action startGameLoop() {
@@ -141,4 +123,3 @@ class Physics {
 }
 
 export default new Physics();
-export { MarbleDefinitions };

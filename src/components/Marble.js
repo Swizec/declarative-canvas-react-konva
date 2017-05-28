@@ -3,8 +3,6 @@ import React, { Component } from 'react';
 import { Circle } from 'react-konva';
 import { inject, observer } from 'mobx-react';
 
-import { MarbleDefinitions } from './logic/Physics';
-
 @inject('physics', 'sprite') @observer
 class Marble extends Component {
     onDragStart() {
@@ -46,7 +44,7 @@ class Marble extends Component {
 
     render() {
         const { sprite, type, draggable, id, physics } = this.props;
-
+        const MarbleDefinitions = sprite.marbleDefinitions;
         const { x, y, r } = physics.marbles[id];
 
         return (

@@ -1,11 +1,10 @@
 
 import React, { Component } from 'react';
-import './App.css';
 
 import { Provider as MobXProvider, observer } from 'mobx-react';
 
-import Physics from './logic/Physics';
-import Sprite from './logic/Sprite';
+import Physics from '../logic/Physics';
+import Sprite from '../logic/Sprite';
 import MarbleList from './MarbleList';
 
 @observer

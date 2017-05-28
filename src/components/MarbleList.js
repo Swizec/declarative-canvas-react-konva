@@ -6,8 +6,9 @@ import { Stage, Layer, Group } from 'react-konva';
 
 import Marble from './Marble';
 
-const MarbleList = inject('physics')(observer(({ physics }) => {
-    const { width, height, marbles, marbleTypes } = physics;
+const MarbleList = inject('physics', 'sprite')(observer(({ physics, sprite }) => {
+    const { width, height, marbles } = physics;
+    const { marbleTypes } = sprite;
 
     return (
         <Stage width={width} height={height}>
