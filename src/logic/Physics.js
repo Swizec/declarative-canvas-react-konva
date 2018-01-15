@@ -2,7 +2,6 @@
 import { observable, computed, action } from 'mobx';
 import { range } from 'd3-array';
 import { timer } from 'd3-timer';
-import { scaleQuantize } from 'd3-scale';
 import { quadtree } from 'd3-quadtree';
 
 class Physics {
@@ -11,10 +10,6 @@ class Physics {
     @observable height = 600;
     @observable marbles = [];
     timer = null;
-    xScale = scaleQuantize().domain([0, this.width])
-                            .range(range(0, this.width, this.MarbleR*2));
-    yScale = scaleQuantize().domain([0, this.height])
-                            .range(range(0, this.height, this.MarbleR*2));
 
     @computed get initialPositions() {
         const { width, height, MarbleR } = this,
