@@ -6,16 +6,16 @@
         "custom-react-scripts": "0.0.23"
     },
     "dependencies": {
-        "d3-force": "^1.0.5",
-        "d3-scale": "^1.0.4",
-        "d3-timer": "^1.0.4",
-        "gh-pages": "^0.12.0",
-        "konva": "^1.7.6",
-        "mobx": "^3.4.1",
-        "mobx-react": "^4.3.5",
-        "react": "^16.2.0",
-        "react-dom": "^16.2.0",
-        "react-konva": "^1.6.5"
+        "d3-force": "^1.1.2",
+        "d3-scale": "^2.1.2",
+        "d3-timer": "^1.0.9",
+        "gh-pages": "^2.0.1",
+        "konva": "^2.4.2",
+        "mobx": "^5.5.1",
+        "mobx-react": "^5.3.4",
+        "react": "^16.5.2",
+        "react-dom": "^16.5.2",
+        "react-konva": "^16.5.2"
     },
     "homepage": "https://swizec.github.io/declarative-canvas-react-konva",
     "scripts": {
