@@ -8,7 +8,7 @@ import MarbleList from "./MarbleList";
 
 @observer
 class App extends Component {
-    componentWillMount() {
+    componentDiMount() {
         Sprite.loadSprite(() => Physics.startGameLoop());
     }
 
