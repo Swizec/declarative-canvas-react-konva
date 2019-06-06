@@ -57,8 +57,11 @@ class Physics {
         const { width, height, MarbleR } = this;
 
         const moveMarble = ({x, y, vx, vy, id}) => {
-            let _vx = ((x+vx < MarbleR) ? -vx : (x+vx > width-MarbleR) ? -vx : vx)*.99,
-                _vy = ((y+vy < MarbleR) ? -vy : (y+vy > height-MarbleR) ? -vy : vy)*.99;
+            let _vx = ((x < MarbleR) ? -vx : (x > width-MarbleR) ? -vx : vx)*.99,
+                _vy = ((y < MarbleR) ? -vy : (y > height-MarbleR) ? -vy : vy)*.99;
+
+            x = (x < MarbleR) ? MarbleR : (x > width-MarbleR) ? width-MarbleR : x;
+            y = (y < MarbleR) ? MarbleR : (y > height-MarbleR) ? height-MarbleR : y;
 
             // nearest marble is a collision candidate
             const subdividedSpace = quadtree().extent([[-1, -1],
@@ -75,18 +78,28 @@ class Physics {
                 // https://github.com/airhadoken/game_of_circles/blob/master/circles.js#L64
                 const cx = candidate.x,
                       cy = candidate.y,
-                      normx = cx - x,
-                      normy = cy - y,
-                      dist = (normx ** 2 + normy ** 2),
-                      c = (_vx * normx + _vy * normy) / dist * 2.3;
+                      cvx = candidate.vx,
+                      cvy = candidate.vy,
+                      dx = cx - x,
+                      dy = cy - y,
+                      d = Math.sqrt(dx ** 2 + dy ** 2),
+                      dirx = dx/d,
+                      diry = dy/d,
+                      // Shift marbles so no overlap
+                      dr = 2*MarbleR-d,
+                      drx = dr*dirx,
+                      dry = dr*diry,
+                      dv = (_vx-cvx)*dirx + (_vy-cvy)*diry,
+                      dvx = dv*dirx,
+                      dvy = dv*diry;
 
-                _vx = (_vx - c * normx)/2.3;
-                _vy = (_vy - c * normy)/2.3;
+                _vx += -dvx;
+                _vy += -dvy;
 
-                candidate.vx += -_vx;
-                candidate.vy += -_vy;
-                candidate.x += -_vx;
-                candidate.y += -_vy;
+                candidate.vx += dvx;
+                candidate.vy += dvy;
+                candidate.x += drx+candidate.vx;
+                candidate.y += dry+candidate.vy;
             }
 
             return {
